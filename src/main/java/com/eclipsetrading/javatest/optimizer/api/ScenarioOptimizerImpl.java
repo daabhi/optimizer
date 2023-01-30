@@ -5,17 +5,17 @@ import java.util.*;
 public class ScenarioOptimizerImpl implements ScenarioOptimizer {
     @Override
     public Collection<Scenario> optimize(Collection<Scenario> originalScenarios) {
-        UnderlyingScenarioMetadata underlyingScenarioMetadata = new UnderlyingScenarioMetadata();
-        underlyingScenarioMetadata.populate(originalScenarios);
-
+        ScenarioPerUnderlying scenarioPerUnderlying = new ScenarioPerUnderlying(originalScenarios);
         List<Scenario> optimizedScenarios = new ArrayList<>();
-        underlyingScenarioMetadata.getOptimizedScenariosCost().forEach((underlyingAsset, optimizedCost) -> {
-            int originalCost = underlyingScenarioMetadata.getOriginalScenarioCost(underlyingAsset);
+        scenarioPerUnderlying.getOptimizedScenariosCost().forEach((underlyingAsset, optimizedCost) -> {
+            int originalCost = scenarioPerUnderlying.getOriginalScenarioCost(underlyingAsset);
             if (optimizedCost <= originalCost) {
-                Scenario scenario = new ScenarioImpl(underlyingAsset, underlyingScenarioMetadata.getRelativeBumps(underlyingAsset), underlyingScenarioMetadata.getMaxFreq(underlyingAsset));
+                List<Double> relativeBumps = scenarioPerUnderlying.getAccumulatedRelativeBumps(underlyingAsset);
+                int maxFreq                = scenarioPerUnderlying.getOriginalScenarioMaxFreq(underlyingAsset);
+                Scenario scenario          = new ScenarioImpl(underlyingAsset, relativeBumps, maxFreq);
                 optimizedScenarios.add(scenario);
             } else {
-                optimizedScenarios.addAll(underlyingScenarioMetadata.getOriginalScenarios(underlyingAsset));
+                optimizedScenarios.addAll(scenarioPerUnderlying.getOriginalScenarios(underlyingAsset));
             }
         });
         return optimizedScenarios;
