@@ -1,9 +1,13 @@
 package com.eclipsetrading.javatest.optimizer.api;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import com.eclipsetrading.javatest.optimizer.api.core.OptimizedScenarioGenerator;
+import com.eclipsetrading.javatest.optimizer.api.core.ScenarioPerUnderlyingOptimizer;
+import com.eclipsetrading.javatest.optimizer.api.interfaces.Scenario;
+import com.eclipsetrading.javatest.optimizer.api.interfaces.ScenarioOptimizer;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /***
  * ScenarioOptimizerImpl calculates the optimizedCost for each underlying and
@@ -19,31 +23,14 @@ import java.util.*;
  * 3. The application could maintain a cache of recently optimized underlying and scenarios and maintain some LRU mechanism for the cache.
  */
 public class ScenarioOptimizerImpl implements ScenarioOptimizer {
-    private static final Logger logger = LogManager.getLogger(ScenarioOptimizerImpl.class.getSimpleName());
-
+    private final AtomicInteger runId = new AtomicInteger(0);
     @Override
     public Collection<Scenario> optimize(Collection<Scenario> originalScenarios) {
-        ScenarioPerUnderlying scenarioPerUnderlying = new ScenarioPerUnderlying(originalScenarios);
-        Map<String, Integer> optimizedCosts         = scenarioPerUnderlying.getOptimizedCosts();
-        List<Scenario> optimizedScenarios           = new ArrayList<>();
+        runId.incrementAndGet();
+        ScenarioPerUnderlyingOptimizer scenarioPerUnderlyingOptimizer = new ScenarioPerUnderlyingOptimizer();
+        Map<String, Integer> optimizedCosts                           = scenarioPerUnderlyingOptimizer.optimize(originalScenarios);
 
-        optimizedCosts.forEach((underlyingAsset, optimizedCost) -> {
-            int originalCost = scenarioPerUnderlying.getCost(underlyingAsset);
-            if (optimizedCost <= originalCost) {
-                optimizedScenarios.add(createScenario(scenarioPerUnderlying, underlyingAsset));
-            } else {
-                optimizedScenarios.addAll(scenarioPerUnderlying.getScenarios(underlyingAsset));
-            }
-        });
-        if (logger.isDebugEnabled()) {//Added log just incase for future we need to log some scenarios to investigate any issue
-            logger.debug("Original Scenarios =" + originalScenarios.size() + ", OptimizedScenarios=" + optimizedScenarios.size());
-        }
-        return optimizedScenarios;
-    }
-
-    private Scenario createScenario(ScenarioPerUnderlying scenarioPerUnderlying, String underlyingAsset) {
-        List<Double> relativeBumps = scenarioPerUnderlying.getRelativeBumps(underlyingAsset);
-        int maxFreq                = scenarioPerUnderlying.getMaxFreq(underlyingAsset);
-        return new ScenarioImpl(underlyingAsset, relativeBumps, maxFreq);
+        OptimizedScenarioGenerator optimizedScenarioGenerator         = new OptimizedScenarioGenerator(runId,scenarioPerUnderlyingOptimizer);
+        return optimizedScenarioGenerator.generate(originalScenarios, optimizedCosts);
     }
 }

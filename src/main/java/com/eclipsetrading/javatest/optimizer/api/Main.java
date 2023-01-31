@@ -1,5 +1,9 @@
 package com.eclipsetrading.javatest.optimizer.api;
 
+import com.eclipsetrading.javatest.optimizer.api.interfaces.Scenario;
+import com.eclipsetrading.javatest.optimizer.api.interfaces.ScenarioOptimizer;
+import com.eclipsetrading.javatest.optimizer.api.pojo.ScenarioImpl;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

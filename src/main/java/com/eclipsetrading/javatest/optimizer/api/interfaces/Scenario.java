@@ -1,4 +1,4 @@
-package com.eclipsetrading.javatest.optimizer.api;
+package com.eclipsetrading.javatest.optimizer.api.interfaces;
 
 import java.util.List;
 

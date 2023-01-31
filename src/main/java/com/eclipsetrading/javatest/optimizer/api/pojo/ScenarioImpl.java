@@ -1,8 +1,10 @@
-package com.eclipsetrading.javatest.optimizer.api;
+package com.eclipsetrading.javatest.optimizer.api.pojo;
+
+import com.eclipsetrading.javatest.optimizer.api.interfaces.Scenario;
 
 import java.util.List;
 
-public class ScenarioImpl implements Scenario{
+public class ScenarioImpl implements Scenario {
     private final String underlyingAsset;
     private final List<Double> relativeBumps;
     private final int frequency;
