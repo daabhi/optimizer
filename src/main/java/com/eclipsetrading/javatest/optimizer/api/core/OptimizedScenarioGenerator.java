@@ -1,45 +1,43 @@
 package com.eclipsetrading.javatest.optimizer.api.core;
 
+import com.eclipsetrading.javatest.optimizer.api.interfaces.IOptimizedScenarioGenerator;
 import com.eclipsetrading.javatest.optimizer.api.interfaces.Scenario;
+import com.eclipsetrading.javatest.optimizer.api.pojo.OptimizedScenarioMetadata;
 import com.eclipsetrading.javatest.optimizer.api.pojo.ScenarioImpl;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class OptimizedScenarioGenerator {
-    private final AtomicInteger runId;
+public class OptimizedScenarioGenerator implements IOptimizedScenarioGenerator {
     private static final Logger logger = LogManager.getLogger(OptimizedScenarioGenerator.class.getSimpleName());
-    private final ScenarioPerUnderlyingOptimizer scenarioPerUnderlyingOptimizer;
-    public OptimizedScenarioGenerator(AtomicInteger runId, ScenarioPerUnderlyingOptimizer scenarioPerUnderlyingOptimizer) {
-        this.scenarioPerUnderlyingOptimizer = scenarioPerUnderlyingOptimizer;
-        this.runId = runId;
-    }
-    public Collection<Scenario> generate(Collection<Scenario> originalScenarios, Map<String, Integer> optimizedCosts) {
-        long startTime = System.currentTimeMillis();
-        List<Scenario> optimizedScenarios                             = new ArrayList<>();
+    private final Map<String, Integer> underlyingCostSavings = new HashMap<>(10000);
+    @Override
+    public Collection<Scenario> generate(OptimizedScenarioMetadata metadata) {
+        long startTime                    = System.currentTimeMillis();
+        List<Scenario> optimizedScenarios = new ArrayList<>();
 
-        optimizedCosts.forEach((underlyingAsset, optimizedCost) -> {
-            int originalCost = scenarioPerUnderlyingOptimizer.getCost(underlyingAsset);
+        metadata.getOptimizedCosts().forEach((underlyingAsset, optimizedCost) -> {
+            int originalCost = metadata.getOriginalCosts().get(underlyingAsset);
             if (optimizedCost <= originalCost) {
-                optimizedScenarios.add(createScenario(scenarioPerUnderlyingOptimizer, underlyingAsset));
+                underlyingCostSavings.put(underlyingAsset,originalCost-optimizedCost);
+                optimizedScenarios.add(new ScenarioImpl(underlyingAsset, metadata.getRelativeBumps().get(underlyingAsset), metadata.getMaxFrequencies().get(underlyingAsset)));
             } else {
-                optimizedScenarios.addAll(scenarioPerUnderlyingOptimizer.getScenarios(underlyingAsset));
+                underlyingCostSavings.put(underlyingAsset, 0);
+                optimizedScenarios.addAll(metadata.getOriginalScenariosBreakdown().get(underlyingAsset));
             }
         });
-        double durationInMillis = Math.round((System.currentTimeMillis()-startTime));
-        if (logger.isDebugEnabled()) {
-            logger.debug(" RunId="+runId.get()+" DurationInMillis="+ durationInMillis+" OriginalScenarios size="+originalScenarios.size()+" OptimizedScenarios size=" + optimizedScenarios.size());
-        }
+        log(startTime, metadata.getRunId());
         return optimizedScenarios;
     }
-    private Scenario createScenario(ScenarioPerUnderlyingOptimizer scenarioPerUnderlyingOptimizer, String underlyingAsset) {
-        List<Double> relativeBumps = scenarioPerUnderlyingOptimizer.getRelativeBumps(underlyingAsset);
-        int maxFreq                = scenarioPerUnderlyingOptimizer.getMaxFreq(underlyingAsset);
-        return new ScenarioImpl(underlyingAsset, relativeBumps, maxFreq);
+
+    private void log(long startTime, AtomicInteger runId) {
+        double durationInMillis = Math.round((System.currentTimeMillis()- startTime));
+        if (logger.isDebugEnabled()) {
+            logger.debug(" RunId="+runId.get()+" CostSavings="+ underlyingCostSavings.toString()+ " DurationInMillis="+ durationInMillis);
+        }
     }
+
+
 }

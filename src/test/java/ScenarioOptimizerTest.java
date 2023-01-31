@@ -165,6 +165,7 @@ public class ScenarioOptimizerTest {
 
     @Test
     public void testPerformance(){
+        ScenarioOptimizer scenarioOptimizer = new ScenarioOptimizerImpl();
         List<Scenario> scenarios = new ArrayList<>();
         IntStream.range(0,1000000).forEach(a->scenarios.add(new ScenarioImpl("U1",Arrays.asList(0.1, 0.2, 0.3+a/10),1+a)));
         long startTime = System.nanoTime();
@@ -174,7 +175,7 @@ public class ScenarioOptimizerTest {
         Assertions.assertEquals(1057913696, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
         Assertions.assertEquals(1,durationInSecs,1,"Took roughly 1-1.5 secs to optimize 1 mill scenarios");
 
-
+        scenarioOptimizer = new ScenarioOptimizerImpl();
         scenarios.clear();
         optimizedScenarios.clear();
         IntStream.rangeClosed(1, 10)
