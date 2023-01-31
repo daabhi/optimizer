@@ -5,8 +5,11 @@ import com.eclipsetrading.javatest.optimizer.api.ScenarioOptimizerImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.IntStream;
 
 public class ScenarioOptimizerTest {
 
@@ -19,7 +22,7 @@ public class ScenarioOptimizerTest {
      *  * Cost = 5*2 + 5*2 = 20</td>
      *  * <td>U1 - bumps=0.1,0.2,0.3,0.4,0.5,0.6 freq=2<br>
      *  * Cost = 6*2 = 12</td>
-     */
+     **/
     public void testBasicWhenOptimizedIsMoreEfficientThanOriginalForSameAssetHavingSameFreq() {
         final Scenario sc1 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.5), 2);
         final Scenario sc2 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6), 2);
@@ -129,4 +132,53 @@ public class ScenarioOptimizerTest {
                                         ", {underlyingAsset='B', relativeBumps=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], frequency=3}\n]", optimizedScenarios.toString());
         Assertions.assertEquals(24+18, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
     }
+
+    @Test
+    /**
+     *<td>S1: U1 - bumps=0.1,0.2,0.3,0.4,0.5,0.6 freq=1<br>
+     *  * S2: U1 - bumps=0.1,0.2,0.3,0.4,0.6,0.7 freq=2<br>
+     *  * S3: U1 - bumps=0.1,0.2,0.3,0.4,0.6,0.8 freq=3<br>
+     *  * S4: U1 - bumps=0.1,0.2,0.3,0.4,0.6,0.9 freq=4<br>
+     *  * S5: U1 - bumps=0.1,0.2,0.3,0.4,0.6,1.0 freq=5<br>
+     *  * Cost = 6*1 + 6*2 + 6*3 + 6*4 + 6*5 = 90</td>
+     *  * <td>U1 - bumps=0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0 freq=5<br>
+     *  * Cost = 10*9 = 50</td>
+     *  * <td>Scenarios are optimized with highest frequency</td>
+     */
+    public void testScenarios(){
+        final Scenario sc1 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.5,0.6), 1);
+        final Scenario sc2 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,0.7), 2);
+        final Scenario sc3 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,0.8), 3);
+        final Scenario sc4 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,0.9), 4);
+        final Scenario sc5 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,1.0), 5);
+        Collection<Scenario> optimizedScenarios = scenarioOptimizer.optimize(Arrays.asList(sc1, sc2, sc3, sc4,sc5));
+        Assertions.assertEquals("[{underlyingAsset='U1', relativeBumps=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], frequency=5}\n]", optimizedScenarios.toString());
+        Assertions.assertEquals(50, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
+    }
+
+    @Test
+    public void testPerformance(){
+        List<Scenario> scenarios = new ArrayList<>();
+        IntStream.range(0,1000000).forEach(a->scenarios.add(new ScenarioImpl("U1",Arrays.asList(0.1, 0.2, 0.3+a/10),1+a)));
+        long startTime = System.nanoTime();
+        Collection<Scenario> optimizedScenarios = scenarioOptimizer.optimize(scenarios);
+        double durationInSecs = (System.nanoTime() - startTime)/1e9;
+
+        Assertions.assertEquals(1057913696, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
+        Assertions.assertEquals(1,durationInSecs,0.5,"Took roughly 1-1.5 secs to optimize 1 mill scenarios");
+
+
+        scenarios.clear();
+        optimizedScenarios.clear();
+        IntStream.rangeClosed(1, 10)
+                .forEach(finalI -> IntStream.range(0, 100_000)
+                        .forEach(a -> scenarios.add(new ScenarioImpl("U" + finalI, Arrays.asList(0.1, 0.2, 0.3 + a / 10), 1 + a))));
+        startTime = System.nanoTime();
+        optimizedScenarios = scenarioOptimizer.optimize(scenarios);
+        durationInSecs = (System.nanoTime() - startTime)/1e9;
+
+        Assertions.assertEquals(1412065408, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
+        Assertions.assertEquals(1, durationInSecs,0.5,"Took roughly 1-1.5 secs to optimize 100k scenarios for 10 underlyings");
+    }
+
 }
