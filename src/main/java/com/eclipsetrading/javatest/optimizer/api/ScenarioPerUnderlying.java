@@ -3,7 +3,7 @@ package com.eclipsetrading.javatest.optimizer.api;
 import java.util.*;
 
 public class ScenarioPerUnderlying {
-    private final Map<String, Integer> originalScenarioCostMap        = new HashMap<>(1000000);
+    private final Map<String, Integer> originalScenarioCostMap        = new HashMap<>(1000000);//Caches pre-allocated for performance.
     private final Map<String, Set<Double>> accumulatedRelativeBumpMap = new HashMap<>(1000000);
     private final Map<String, Integer> originalScenarioMaxFreqMap     = new HashMap<>(1000000);
     private final Map<String, Integer> optimizedScenariosCostMap      = new HashMap<>(1000000);
