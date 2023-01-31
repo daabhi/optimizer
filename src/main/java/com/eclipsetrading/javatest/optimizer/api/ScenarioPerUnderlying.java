@@ -22,23 +22,23 @@ public class ScenarioPerUnderlying {
         accumulatedRelativeBumpMap.forEach((symbol, v) -> optimizedScenariosCostMap.put(symbol, v.size() * originalScenarioMaxFreqMap.get(symbol)));
     }
 
-    public Map<String, Integer> getOptimizedScenariosCost() {
+    public Map<String, Integer> getOptimizedCosts() {
         return optimizedScenariosCostMap;
     }
 
-    public Integer getOriginalScenarioCost(String symbol) {
+    public Integer getCost(String symbol) {
         return originalScenarioCostMap.get(symbol);
     }
 
-    public List<Double> getAccumulatedRelativeBumps(String symbol) {
+    public List<Double> getRelativeBumps(String symbol) {
         return new ArrayList<>(accumulatedRelativeBumpMap.get(symbol));
     }
 
-    public List<Scenario> getOriginalScenarios(String symbol) {
+    public List<Scenario> getScenarios(String symbol) {
         return originalScenarioMap.get(symbol);
     }
 
-    public int getOriginalScenarioMaxFreq(String underlyingAsset) {
+    public int getMaxFreq(String underlyingAsset) {
         return originalScenarioMaxFreqMap.get(underlyingAsset);
     }
 }
