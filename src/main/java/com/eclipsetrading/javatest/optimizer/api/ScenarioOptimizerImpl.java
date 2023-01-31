@@ -1,5 +1,8 @@
 package com.eclipsetrading.javatest.optimizer.api;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.util.*;
 
 /***
@@ -9,6 +12,8 @@ import java.util.*;
  * else it uses the original normal scenarios for that underlying which have a lower cost compared to the optimized ones.
  */
 public class ScenarioOptimizerImpl implements ScenarioOptimizer {
+    private static final Logger logger = LogManager.getLogger(ScenarioOptimizerImpl.class.getSimpleName());
+
     @Override
     public Collection<Scenario> optimize(Collection<Scenario> originalScenarios) {
         ScenarioPerUnderlying scenarioPerUnderlying = new ScenarioPerUnderlying(originalScenarios);
@@ -24,6 +29,7 @@ public class ScenarioOptimizerImpl implements ScenarioOptimizer {
                 optimizedScenarios.addAll(scenarioPerUnderlying.getOriginalScenarios(underlyingAsset));
             }
         });
+        logger.info("Original Scenarios ="+ originalScenarios +", OptimizedScenarios="+ optimizedScenarios);
         return optimizedScenarios;
     }
 }

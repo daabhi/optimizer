@@ -112,8 +112,6 @@ public class ScenarioOptimizerTest {
         Collection<Scenario> optimizedScenarios = scenarioOptimizer.optimize(Arrays.asList(sc1, sc2));
         Assertions.assertEquals("[{underlyingAsset='U1', relativeBumps=[0.1, 0.2, 0.3, 0.4, 0.5], frequency=5}\n" + "]", optimizedScenarios.toString());
         Assertions.assertEquals(25, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
-
-
     }
     @Test
     /**
