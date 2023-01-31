@@ -29,7 +29,9 @@ public class ScenarioOptimizerImpl implements ScenarioOptimizer {
                 optimizedScenarios.addAll(scenarioPerUnderlying.getOriginalScenarios(underlyingAsset));
             }
         });
-        logger.info("Original Scenarios ="+ originalScenarios +", OptimizedScenarios="+ optimizedScenarios);
+        if (logger.isDebugEnabled()) {//Added log just incase for future we need to log some scenarios to investigate any issue.
+            logger.debug("Original Scenarios =" + originalScenarios.size() + ", OptimizedScenarios=" + optimizedScenarios.size());
+        }
         return optimizedScenarios;
     }
 }

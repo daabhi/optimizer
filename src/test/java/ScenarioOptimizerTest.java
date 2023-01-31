@@ -2,19 +2,28 @@ import com.eclipsetrading.javatest.optimizer.api.Scenario;
 import com.eclipsetrading.javatest.optimizer.api.ScenarioImpl;
 import com.eclipsetrading.javatest.optimizer.api.ScenarioOptimizer;
 import com.eclipsetrading.javatest.optimizer.api.ScenarioOptimizerImpl;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class ScenarioOptimizerTest {
 
     private final ScenarioOptimizer scenarioOptimizer = new ScenarioOptimizerImpl();
 
+    @BeforeAll
+    public static void setup(){
+        List<Logger> loggers = Collections.<Logger>list(LogManager.getCurrentLoggers());
+        loggers.add(LogManager.getRootLogger());
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.OFF);
+        }
+    }
     @Test
     /**
      *  * S1: U1 - bumps=0.1,0.2,0.3,0.4,0.5 freq=2<br>
