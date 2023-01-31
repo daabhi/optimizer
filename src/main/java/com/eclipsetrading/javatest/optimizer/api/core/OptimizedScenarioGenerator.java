@@ -20,7 +20,7 @@ public class OptimizedScenarioGenerator {
         this.runId = runId;
     }
     public Collection<Scenario> generate(Collection<Scenario> originalScenarios, Map<String, Integer> optimizedCosts) {
-        long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
         List<Scenario> optimizedScenarios                             = new ArrayList<>();
 
         optimizedCosts.forEach((underlyingAsset, optimizedCost) -> {
@@ -31,7 +31,7 @@ public class OptimizedScenarioGenerator {
                 optimizedScenarios.addAll(scenarioPerUnderlyingOptimizer.getScenarios(underlyingAsset));
             }
         });
-        double durationInMillis = Math.round((System.nanoTime()-startTime)/1e6);
+        double durationInMillis = Math.round((System.currentTimeMillis()-startTime));
         if (logger.isDebugEnabled()) {
             logger.debug(" RunId="+runId.get()+" DurationInMillis="+ durationInMillis+" OriginalScenarios size="+originalScenarios.size()+" OptimizedScenarios size=" + optimizedScenarios.size());
         }
