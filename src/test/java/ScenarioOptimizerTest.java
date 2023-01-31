@@ -181,4 +181,23 @@ public class ScenarioOptimizerTest {
         Assertions.assertEquals(1, durationInSecs,0.5,"Took roughly 1-1.5 secs to optimize 100k scenarios for 10 underlyings");
     }
 
+    @Test
+    public void testOneUnderlyingInputAlreadyOptimizedAndOtherUnderlyingNeedsToBeOptimized(){
+        final Scenario sc1 = new ScenarioImpl("U1", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.5,0.6), 1);
+        final Scenario sc2 = new ScenarioImpl("U1", Arrays.asList(0.6,0.7), 2);
+
+        final Scenario sc3 = new ScenarioImpl("U2", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,0.7), 3);
+        final Scenario sc4 = new ScenarioImpl("U2", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,0.8), 4);
+        final Scenario sc5 = new ScenarioImpl("U2", Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.6,0.9), 5);
+        Collection<Scenario> optimizedScenarios = scenarioOptimizer.optimize(Arrays.asList(sc1, sc2, sc3, sc4,sc5));
+        //For underlying U1 input is already optimized and thus it stays like that, whereas for U2 input has been optimized accordingly
+        Assertions.assertEquals("[{underlyingAsset='U1', relativeBumps=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6], frequency=1}\n" +
+                ", {underlyingAsset='U1', relativeBumps=[0.6, 0.7], frequency=2}\n" +
+                ", {underlyingAsset='U2', relativeBumps=[0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.8, 0.9], frequency=5}\n" +
+                "]", optimizedScenarios.toString());
+        Assertions.assertEquals(50, optimizedScenarios.stream().mapToInt(Scenario::calculateCost).sum());
+
+
+    }
+
 }
